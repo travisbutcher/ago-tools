@@ -3,121 +3,50 @@
 A Python package to assist with administering ArcGIS Online Organizations.
 
 ## Features
+
 * Create a spreadsheet of all users in the org
 * Update map service urls in webmaps
 * Search for new users and add them to a list of groups
 * Move (migrate) all items between accounts (single or batch)
-
-## Instructions
-
-1. Fork and then clone the repo. 
-2. Run and try the samples.
+* Search a portal
+* Update sharing of content in groups
+* Remove items from an organization
+* Automate registration of items via spreadsheet
+* Calculate presence of attachments for features
 
 ## Installation
-Unzip into a folder such as C:/myscripts and remove dashes from the directory name.
-e.g. `C:/myscripts/ago-tools-master` to `C:/myscripts/agoTools`
 
-Then do one of the following:
-
-* add that directory to your system path in advanced system settings
-* append it at runtime using the sys module in python
-    
-        import sys
-        sys.path.append('c:/myscripts')
+1. Download or clone the project.
+2. Run `python setup.py install` from the command line **--OR--** add the `agoTools` folder to your script directory.
 
 ## Samples
-
 ### Admin Class
- 
-#### Create a spreadsheet of all users in the org
-    # Requires admin role.
-    import csv, time
-    from agoTools.admin import Admin
-	
-    agoAdmin = Admin(<username>) # Replace <username> with your admin username.
-    users = agoAdmin.getUsers()
 
-    outputFile = 'c:/temp/users.csv'
+* [Create a spreadsheet of all users in the organization](samples/createUserListCSV.py)
+* [Add new users to a set of groups](samples/addNewUsersToGroups.py)
+* Migrate items and group ownership/membership between user accounts:
+  * [Move all items from one account to another, reassign ownership of all groups, and/or add user to another user's groups](samples/moveItemsReassignGroups.py)
+  * [Migrate account(s)](samples/migrateAccount.py)
+* [Generate a CSV listing the items in the organization](samples/AGOLCat.py)
+* [Register items listed in an input CSV to the organization](samples/registerItems.py)
+* [Remove (delete) all items from a designated folder under My Content](samples/clearFolder.py)
+* [Remove (unshare) all items from a designated group in the organization](samples/clearGroup.py)
+* [Update any missing thumbnails for items under My Content with a default](samples/updateServiceItemsThumbnail.py)
+* [Assign roles to Username and Role from input CSV](samples/updateUserRoles.py)
+* [Delete items listed in a CSV from an organization](samples/deleteItems.py)
+* [Find items containing reference of specific path](samples/findItemsContainingUrl.py)
+* [Insert bookmarks into webmap from feature extents](samples/populateBookmarks.py)
+* [Calculate status of attachments for features in layer](samples/flagAttachments.py)
 
-    with open(outputFile, 'wb') as output:
-        dataWriter = csv.writer(output, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        # Write header row.
-        dataWriter.writerow(['Full Name', 'Email', 'Username', 'Role', 'Date Created'])
-        # Write user data.
-        for user in users:
-            dataWriter.writerow([user['fullName'], user['email'], user['username'], user['role'], time.strftime("%Y-%m-%d",time.gmtime(user['created']/1000))])
 
-#### Add new users to existing groups
-    # Requires admin role.
-    import csv, datetime
-    from agoTools.admin import Admin
+### Utilities Class
 
-    # User parameters:
-    agoAdmin = Admin(<username>)   # Replace <username> with your admin username.
-    daysToCheck = 7   # Replace with number of days to check...1 checks past day, 7 checks past week, etc.
-    groups = [<groupID1>, <groupID2>, ...]   # Enter <groupIDs> of groups to which you want to add new users
-    outputDir = 'c:/temp/'   # Replace with path for report file
-	
-    outputDate = datetime.datetime.now().strftime("%Y%m%d")   # Current date prefixed to filename.
-    outputFile = outputDir + outputDate + '_AddNewUsers2Groups.csv'
-	
-    userSummary = agoAdmin.addNewUsersToGroups(daysToCheck, groups)
-	
-    with open(outputFile, 'wb') as output:
-        dataWriter = csv.writer(output, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
-        # Write header row.
-        dataWriter.writerow(['Full Name', 'Email', 'Username', 'Role', 'Date Created'])
-        # Write user data.
-        for user in userSummary:
-            dataWriter.writerow([user['fullName'], user['email'], user['username'], user['role'], time.strftime("%Y-%m-%d", time.gmtime(user['created']/1000))])
+* [Update map service URLs in web maps](samples/updateMapServiceUrlsInWebMaps.py)
+* [Update the URL for registered services or web applications](samples/updateRegisteredUrlForServiceOrApp.py)
+* Search Examples ([search cheat sheet](search-cheat-sheet.md)):
+  * [Search for the top 10 most viewed public items in the organization](samples/searchTopViewedItems.py)
+  * [Search for all content owned by a specific user (admin view)](samples/searchAllUserItems.py)
 
-#### Move all items from one account to another, reassign ownership of all groups, or add user to another user's groups
-    # Requires admin role
-    # If you want to do all three tasks at once, see migrateAccount or migrateAccounts functions
-	
-    from agoTools.admin import Admin
-    agoAdmin = Admin(<username>)  # Replace <username> with your admin username
-    
-    Admin.reassignAllUser1ItemsToUser2(agoAdmin, <userFrom>, <userTo>)  #Replace with your current and new account usernames
-    Admin.reassignAllGroupOwnership(agoAdmin, <userFrom>, <userTo>)
-    Admin.addUser2ToAllUser1Groups(agoAdmin, <userFrom>, <userTo>)
-    
-#### Migrate person to a new account within the same Org
-    # Requires admin role
-    # Useful when migrating to Enterprise Logins.
-    # Reassigns all items/groups to new owner and
-    # adds userTo to all groups which userFrom is a member.'''
-
-    from agoTools.admin import Admin
-	
-    myAgol = Admin('<username>')  # Replace <username> your ADMIN account
-    
-    # for migrating a single account...
-    Admin.migrateAccount(myAgol, '<userFrom>', '<userTo>')   # Replace with usernames between which you are moving items
-    # for migrating a batch of accounts
-    Admin.migrateAccounts(myAgol, <path to user mapping CSV>)   # Replace with path to CSV file with col1=userFrom, col2=userTo
-  
-### Utilities Classs
-            
-#### Update map service urls in webmaps
-    from agoTools.utilities import Utilities
-    agoUtilities = Utilities(<username>) # Replace <username> with your username.
-
-    webmapId = 'e1d78110b0eg447aab46d373c7360046'
-    oldUrl = 'http://myserver.com/arcgis/rest/services/old/MapServer'
-    newUrl = 'http://myserver.com/arcgis/rest/services/new/MapServer'
-
-    agoUtilities.updateWebmapService(webmapId, oldUrl, newUrl)
-    
-#### Update the URL for registered map services or web applications
-    from agoTools.utilities import Utilities
-    agoUtilities = Utilities(<username>) # Replace <username> with your username.
-
-    itemId = 'e1d78110b0eg447aab46d373c7360046'
-    oldUrl = 'http://oldserver.com/app'
-    newUrl = 'http://newserver.com/app'
-
-    agoUtilities.updateItemUrl(itemId, oldUrl, newUrl)	
 
 ## Requirements
 
@@ -138,6 +67,14 @@ Find a bug or want to request a new feature?  Please let us know by submitting a
 
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
+Please use the following style guides when contributing to this particular repo:
+
+* 4 spaces for indentation
+* `'singleQuotes'` instead of `"doubleQuotes"`
+* `publicFunction()` vs ` `\_\_internalFunction\_\_()`
+* `# Place comments on their own line preceding the code they explain.`
+
+
 ## Licensing
 Copyright 2013 Esri
 
@@ -153,7 +90,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-A copy of the license is available in the repository's [license.txt](https://raw.github.com/Esri/ago-tools/master/license.txt) file.
+A copy of the license is available in the repository's [license.txt](license.txt) file.
 
 [](Esri Tags: ArcGIS-Online Python Tools Library)
 [](Esri Language: Python)

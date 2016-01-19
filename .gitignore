@@ -1,2 +1,7 @@
+# Build files
 *.pyc
-*.DS_Store
+build/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
